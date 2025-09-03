@@ -1,0 +1,97 @@
+import mongoose,{Document,Model,Schema} from 'mongoose'
+import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
+require('dotenv').config()
+//Interface helps in compile time type checking helps in writing code while Schema helps in run time so ensure type safety in database
+const emailRegex:RegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export interface User extends Document{
+    name:string,
+    email:string,
+    password:string,
+    avatar:{
+        public_id:string,
+        url:string,
+    },
+    role:string,
+    isVerified:boolean,
+    courses:Array<{courseId:string}>,
+    comparePassword:(password:string) => Promise<boolean>;
+    signAcessToken:() => string,
+    signRefreshToken:()=> string
+}
+
+const userSchema:Schema<User> = new mongoose.Schema({
+name:{
+    type:String,
+    required:[true,'Please enter your name']
+},
+email:{
+    type:String,
+    required:[true,'Please enter your email'],
+    validate:{
+        validator:(value:string)=>{
+            return emailRegex.test(value);
+        },
+        message:'Please enter a valid email address'
+    },
+    unique:true,
+},
+password:{
+    type:String,
+    required:[true,'Please enter your password'],
+    minLength:[6,'Password must be at least 6 characters'],
+    select:false,
+    trim:true,
+    validate: {
+  validator: (val: string) => /^(?=.*[A-Z])(?=.*\d).+$/.test(val),
+  message: "Password must contain at least one uppercase letter and one number",
+}
+},
+avatar:{
+    public_id:String,
+    url:String,
+},
+role:{
+type:String,
+default:"user",
+},
+isVerified:{
+    type:Boolean,
+    default:false,
+},
+courses:[{
+    courseId:String,
+}]
+},{timestamps:true})
+
+//Hashing password before saving user
+userSchema.pre<User>("save", async function (next) {
+  if (!this.isModified("password")) return next();
+
+  const salt = await bcrypt.genSalt(10);      
+  this.password = await bcrypt.hash(this.password, salt); 
+  next();
+});
+
+userSchema.methods.comparePassword = async function( Enteredpassword:string){
+    return await bcrypt.compare(Enteredpassword,this.password)
+}
+//Acess token expires after few minutes and is responsible for checking authentication 
+userSchema.methods.SignAccessToken = function(){
+    return jwt.sign({id:this._id},
+        process.env.ACCESS_TOKEN || ''
+    )
+}
+//Refresh token generates new access token after it has been expired 
+userSchema.methods.RefreshToken = function(){
+    return jwt.sign({id:this._id},
+        process.env.REFRESH_TOKEN || ''
+    )
+}
+
+
+
+
+
+ const UserModel:Model<User> = mongoose.model<User>("User",userSchema)
+ export default UserModel
