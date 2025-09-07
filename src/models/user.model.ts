@@ -16,7 +16,7 @@ export interface User extends Document{
     isVerified:boolean,
     courses:Array<{courseId:string}>,
     comparePassword:(password:string) => Promise<boolean>;
-    signAcessToken:() => string,
+    signAccessToken:() => string,
     signRefreshToken:()=> string
 }
 
@@ -38,7 +38,6 @@ email:{
 },
 password:{
     type:String,
-    required:[true,'Please enter your password'],
     minLength:[6,'Password must be at least 6 characters'],
     select:false,
     trim:true,
@@ -77,15 +76,20 @@ userSchema.methods.comparePassword = async function( Enteredpassword:string){
     return await bcrypt.compare(Enteredpassword,this.password)
 }
 //Acess token expires after few minutes and is responsible for checking authentication 
-userSchema.methods.SignAccessToken = function(){
+userSchema.methods.signAccessToken = function(){
     return jwt.sign({id:this._id},
-        process.env.ACCESS_TOKEN || ''
+        process.env.ACCESS_TOKEN || '',{
+            expiresIn:"5m"
+        }
+        
     )
 }
 //Refresh token generates new access token after it has been expired 
-userSchema.methods.RefreshToken = function(){
+userSchema.methods.signRefreshToken = function(){
     return jwt.sign({id:this._id},
-        process.env.REFRESH_TOKEN || ''
+    process.env.REFRESH_TOKEN || '',{
+            expiresIn:"3d"
+        }
     )
 }
 

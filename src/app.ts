@@ -4,9 +4,10 @@ import express, { NextFunction, Request, Response } from "express";
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import { errorMid } from "./middleware/error";
-app.use(express.json({limit:"50mb"}));
 import userRouter from "./routes/user.route";
 
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.use(cors({
@@ -22,4 +23,4 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   res.status(404).json({ message: `Route ${req.originalUrl} not found` });
 });
 
-app.use(errorMid);
+app.use(errorMid);   
