@@ -46,9 +46,9 @@ password:{
   message: "Password must contain at least one uppercase letter and one number",
 }
 },
-avatar:{
-    public_id:String,
-    url:String,
+avatar: {
+  public_id: { type: String, default: "" },
+  url: { type: String, default: "" },
 },
 role:{
 type:String,
@@ -92,10 +92,5 @@ userSchema.methods.signRefreshToken = function(){
         }
     )
 }
-
-
-
-
-
  const UserModel:Model<User> = mongoose.model<User>("User",userSchema)
  export default UserModel

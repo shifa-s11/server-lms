@@ -32,7 +32,7 @@ export const RefreshTokenOpt: Token = {
 }
 export const sendToken = (user: User, statusCode: number, res: Response) => {
 
-    redis.set(user._id as string, JSON.stringify(user));
+    redis.set(user._id.toString(), JSON.stringify(user));
 
 
     const accessToken = user.signAccessToken();
