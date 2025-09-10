@@ -5,7 +5,7 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import { errorMid } from "./middleware/error";
 import userRouter from "./routes/user.route";
-
+import courseRouter from "./routes/course.route";
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -15,6 +15,7 @@ app.use(cors({
 }))
 
 app.use('/api/v1',userRouter)
+app.use('/api/v1',courseRouter)
 app.get('/test',(req:Request,res:Response)=>{
 res.send("Test route is working!");
 })

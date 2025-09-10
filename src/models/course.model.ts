@@ -49,7 +49,7 @@ interface Course extends Document {
         title:string
     }[],
     reviews:Review[],
-    couseData:CourseData[],
+   courseData: CourseData[];
     ratings?:number,
     purchased?:number,
 
@@ -77,12 +77,11 @@ const commentSchema = new Schema<Comment>({
 
 const courseDataSchema = new Schema<CourseData>({
 videoUrl:String,
-videoThumbnail:Object,
 title:String,
 videoSection:String,
 videoLength:Number,
 videoPlayer:String,
-links:linkSchema,
+links:[linkSchema],
 suggestion:String,
 questions:[commentSchema]
 })
@@ -106,12 +105,10 @@ const courseSchema = new Schema<Course>({
     thumbnail:{
         public_id:{
             type:String,
-        required:true,
         },
         url:{
              type:String,
-        required:true,
-        },
+        }},
         tags:{
             type:String,
         required:true,
@@ -124,10 +121,11 @@ const courseSchema = new Schema<Course>({
              type:String,
         required:true, 
         },
+        courseData:[courseDataSchema],
         benefits:[{title:String}],
         prerequisites:[{title:String}],
         reviews:[reviewSchema],
-        courseData:[courseDataSchema],
+
         ratings:{
             type:Number,
             default:0
@@ -136,7 +134,7 @@ const courseSchema = new Schema<Course>({
             type:Number,
             default:0
         }
-    }
+    
 })
 
 const CourseModel:Model<Course> = mongoose.model("Course",courseSchema)
