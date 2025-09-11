@@ -8,6 +8,7 @@ declare global {
       email?: string;
       name?: string;
       avatar?:string
+        courses?: { _id: string }[]; 
     }
 
     interface Request {

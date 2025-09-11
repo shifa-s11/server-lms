@@ -6,6 +6,8 @@ import { createCourse } from "../services/course.service";
 import CourseModel from "../models/course.model";
 import { success } from "zod";
 import { redis } from './../config/redis';
+import mongoose from "mongoose";
+import { createConnection } from "net";
 
 // course upload 
 
@@ -120,12 +122,68 @@ const isCacheExist = await redis.get("allCourses")
 else{
         const courses = await CourseModel.find().select("-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links")
          await redis.set("allCourses",JSON.stringify(courses))
-         console.log("hii")
         res.status(200).json({
             success: true,
             courses
         })}
     } catch (error: any) {
+        console.error("EditCourse Error:", error);
+        return next(new ErrorHandler(error.message, 400));
+    }
+})
+
+// get course content - for valid user 
+
+export const getCourseByUser = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+const userCourse = req.user?.courses;
+const courseId = req.params.id;
+const courseExist = userCourse?.find((course:any) => course._id.toString() === courseId
+)
+if(!courseExist){
+return next (new ErrorHandler("You are not eligible to access this course",404))
+}
+const course = await CourseModel.findById(courseId);
+
+const content = course?.courseData
+res.status(200).json({
+    success:true,
+    content
+})
+    }catch (error: any) {
+        console.error("EditCourse Error:", error);
+        return next(new ErrorHandler(error.message, 400));
+    }})
+
+    //add question 
+    interface AddQuestion{
+        question :string,
+        courseId:string,
+        contentId:string
+    }
+
+    export const addQuestion = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const {question,courseId,contentId}:AddQuestion = req.body;
+        const course = await CourseModel.findById(courseId);
+
+        if(!mongoose.Types.ObjectId.isValid(contentId)){
+             return next(new ErrorHandler("Invalid Content Id", 400));
+        }
+        const courseContent = course?.courseData.find((item:any)=>item._id.equals(contentId))
+
+        if(!courseContent){
+  return next(new ErrorHandler("Invalid Content Id", 400));
+        }
+        const newQuestion:any = {
+            user:req.user,
+            question,
+            questionReplies:[]
+            
+        }
+        
+    }
+    catch (error: any) {
         console.error("EditCourse Error:", error);
         return next(new ErrorHandler(error.message, 400));
     }
