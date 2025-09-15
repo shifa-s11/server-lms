@@ -1,15 +1,17 @@
 import mongoose,{Document,Schema,Model} from "mongoose";
+import { User } from "./user.model";
+import { object } from "zod";
 
 interface Comment extends Document{
-    user:object,
-    comment:string
-    commentReply:Comment[],
+    user:User,
+    question:string
+    questionReplies:Comment[],
 }
 
 
 
 interface Review extends Document{
-    user:object,
+    user:User,
     rating:number,
     comment:string,
     commentReply:Comment[],
@@ -61,7 +63,8 @@ rating:{
     type:Number,
     default:0
 },
-comment:String
+comment:String,
+commentReply:Object
 })
 
 const linkSchema = new Schema<Link>({
@@ -71,8 +74,8 @@ const linkSchema = new Schema<Link>({
 
 const commentSchema = new Schema<Comment>({
     user:Object,
-    comment:String,
-    commentReply:[Object],
+    question:String,
+    questionReplies:[Object],
 })
 
 const courseDataSchema = new Schema<CourseData>({

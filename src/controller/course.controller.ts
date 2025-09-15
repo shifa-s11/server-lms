@@ -1,5 +1,5 @@
+import { CatchAsyncError } from './../middleware/catchAsyncError';
 import { Request, Response, NextFunction } from "express";
-import { CatchAsyncError } from "../middleware/catchAsyncError";
 import ErrorHandler from "../utils/ErrorHandler";
 import cloudinary from 'cloudinary'
 import { createCourse } from "../services/course.service";
@@ -7,7 +7,9 @@ import CourseModel from "../models/course.model";
 import { success } from "zod";
 import { redis } from './../config/redis';
 import mongoose from "mongoose";
-import { createConnection } from "net";
+import ejs from "ejs";
+import path from "path";
+import sendMail from '../utils/sendMail';
 
 // course upload 
 
@@ -35,7 +37,7 @@ export const uploadCourse = CatchAsyncError(async (req: Request, res: Response, 
         });
     } catch (error: any) {
         console.error("UploadCourse Error:", error);
-        return next(new ErrorHandler(error.message, 400));
+        return next(new ErrorHandler(error.message, 500));
     }
 });
 
@@ -78,7 +80,7 @@ export const editCourse = CatchAsyncError(async (req: Request, res: Response, ne
         });
     } catch (error: any) {
         console.error("EditCourse Error:", error);
-        return next(new ErrorHandler(error.message, 400));
+        return next(new ErrorHandler(error.message, 500));
     }
 });
 
@@ -103,8 +105,8 @@ else{
             course
         })}
     } catch (error: any) {
-        console.error("EditCourse Error:", error);
-        return next(new ErrorHandler(error.message, 400));
+        console.error("Error:", error);
+        return next(new ErrorHandler(error.message, 500));
     }
 })
 
@@ -127,8 +129,8 @@ else{
             courses
         })}
     } catch (error: any) {
-        console.error("EditCourse Error:", error);
-        return next(new ErrorHandler(error.message, 400));
+        console.error(" Error:", error);
+        return next(new ErrorHandler(error.message, 500));
     }
 })
 
@@ -151,8 +153,8 @@ res.status(200).json({
     content
 })
     }catch (error: any) {
-        console.error("EditCourse Error:", error);
-        return next(new ErrorHandler(error.message, 400));
+        console.error(" Error:", error);
+        return next(new ErrorHandler(error.message, 500));
     }})
 
     //add question 
@@ -181,10 +183,177 @@ res.status(200).json({
             questionReplies:[]
             
         }
+        courseContent.questions.push(newQuestion)
         
+        await course?.save();
+        res.status(200).json({
+    success:true,
+    course
+})
+
     }
     catch (error: any) {
-        console.error("EditCourse Error:", error);
-        return next(new ErrorHandler(error.message, 400));
+        console.error("Error:", error);
+        return next(new ErrorHandler(error.message, 500));
     }
 })
+
+//add - question Replies
+
+interface AddAnswerData{
+    answer:string,
+    courseId:string,
+    contentId : string,
+    questionId : string
+}
+
+export const addAnswer = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+const {answer,courseId,contentId,questionId}:AddAnswerData = req.body
+
+const course = await CourseModel.findById(courseId);
+        if(!mongoose.Types.ObjectId.isValid(contentId)){
+             return next(new ErrorHandler("Invalid Content Id", 400));
+        }
+        const courseContent = course?.courseData.find((item:any)=>item._id.equals(contentId))
+
+        if(!courseContent){
+  return next(new ErrorHandler("Invalid Content Id", 400));
+        }
+const question = courseContent?.questions?.find((item:any)=>
+    item._id.equals(questionId)
+)
+if(!question){
+      return next(new ErrorHandler("Invalid question  Id", 400));
+}
+
+const newAnswer: any = {
+  user:req.user,
+  answer  
+}
+question.questionReplies.push(newAnswer)
+
+await course?.save();
+
+if(req.user?._id === question.user._id){
+    // reate a notification
+}else{
+    const data = {
+        name:question.user.name,
+        title:courseContent.title
+    }
+const html = await ejs.renderFile(path.join(__dirname,"../mail/question-reply.ejs"),data)
+
+try{
+    await sendMail({
+      email:question.user.email ,
+       subject:"Question Reply",
+       template:"question-reply.ejs",
+       data,
+    })
+} catch(error:any){
+    console.error("Error:", error);
+        return next(new ErrorHandler(error.message, 500));
+}
+}
+ res.status(200).json({
+    success:true,
+    course
+})
+    }catch (error: any) {
+        console.error("Error:", error);
+        return next(new ErrorHandler(error.message, 500));
+    }
+
+})
+//add review in course 
+
+interface ReviewData {
+review:string,
+courseId : string,
+rating:number,
+userId:string
+}
+
+export const addReview = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+const userCourse = req.user?.courses;
+const courseId = req.params.id;
+
+const courseExist = userCourse?.some((course:any)=>course._id.toString())
+
+if(!courseExist){
+     return next(new ErrorHandler("You are not eligible to access this resource", 404));
+}
+const course = await CourseModel.findById(courseId);
+
+const {review,rating} = req.body as ReviewData
+const reviewData:any = {
+    user:req.user,
+    comment:review,
+    rating
+}
+
+course?.reviews.push(reviewData)
+
+let avg = 0;
+course?.reviews.forEach((rev:any)=>{
+    avg += rev.rating;
+})
+if(course){
+    course.ratings = avg/course.reviews.length
+}
+await course?.save();
+
+const notification = {
+    title:"The Review Received",
+    messaage:`${req.user?.name} has given a review in ${course?.name}`
+}
+ res.status(200).json({
+    success:true,
+    course
+})
+    }catch (error: any) {
+        console.error("Error:", error);
+        return next(new ErrorHandler(error.message, 500));
+    }})
+
+    // add replies in review -only by admin 
+interface ReplyData {
+    comment : string,
+    courseId : string,
+    reviewId : string
+}
+
+
+    export const addReply = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const {comment,courseId,reviewId} = req.body as ReplyData
+    
+        const course = await CourseModel.findById(courseId);
+    if(!course){
+         return next(new ErrorHandler("Course not found", 404));
+    }
+const review = course?.reviews?.find((rev: any) => rev._id.toString() === reviewId);
+        if(!review){
+         return next(new ErrorHandler("Review not found", 404));
+    }
+    const replyData:any = {
+        user:req.user,
+        comment,
+    }
+    if(!review.commentReply){
+        review.commentReply=[]
+    }
+    review.commentReply?.push(replyData)
+        await course?.save()
+     res.status(200).json({
+    success:true,
+    course
+})
+    }
+catch (error: any) {
+        console.error("Error:", error);
+        return next(new ErrorHandler(error.message, 500));
+    }
+}) 

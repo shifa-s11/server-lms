@@ -114,7 +114,7 @@ export const activateUser = CatchAsyncError(
         message: "Account activated successfully"
       })
     } catch (error: any) {
-      return next(new ErrorHandler(error.message, 400));
+      return next(new ErrorHandler(error.message, 500));
     }
   }
 );
@@ -143,7 +143,7 @@ export const loginUser = CatchAsyncError(
       }
       sendToken(user, 200, res);
     } catch (error: any) {
-      return next(new ErrorHandler(error.message, 400))
+      return next(new ErrorHandler(error.message, 500))
     }
   }
 )
@@ -161,7 +161,7 @@ export const logoutUser = CatchAsyncError(async (req: Request, res: Response, ne
       message: 'Logged out successfully'
     })
   } catch (error: any) {
-    return next(new ErrorHandler(error.message, 400))
+    return next(new ErrorHandler(error.message, 500))
   }
 })
 
@@ -193,7 +193,7 @@ export const updateAccessToken = CatchAsyncError(async (req: Request, res: Respo
       accessToken,
     })
   } catch (error: any) {
-    return next(new ErrorHandler(error.message, 400))
+    return next(new ErrorHandler(error.message, 500))
   }
 })
 //get userInfo
@@ -202,7 +202,7 @@ export const getUserInfo = CatchAsyncError(async (req: Request, res: Response, n
     const userId = req.user?._id?.toString();
     await getUserId(userId, res)
   } catch (error: any) {
-    return next(new ErrorHandler(error.message, 400))
+    return next(new ErrorHandler(error.message, 500))
   }
 })
 //Social -Auth
@@ -232,7 +232,7 @@ export const socialAuth = CatchAsyncError(async (req: Request, res: Response, ne
       sendToken(user, 200, res)
     }
   } catch (error: any) {
-    return next(new ErrorHandler(error.message, 400))
+    return next(new ErrorHandler(error.message, 500))
   }
 })
 
@@ -266,7 +266,7 @@ res.status(201).json({
   user
 })
   }catch (error: any) {
-    return next(new ErrorHandler(error.message, 400))
+    return next(new ErrorHandler(error.message, 500))
   }
 })
 
@@ -313,7 +313,7 @@ if(user?.password===undefined){
         user
       });
     } catch (error: any) {
-      return next(new ErrorHandler(error.message, 400));
+      return next(new ErrorHandler(error.message, 500));
     }
   }
 );
@@ -364,7 +364,7 @@ export const updateAvatar = CatchAsyncError(
         avatar: user.avatar,
       });
     } catch (error: any) {
-      return next(new ErrorHandler(error.message, 400));
+      return next(new ErrorHandler(error.message, 500));
     }
   }
 );
@@ -374,6 +374,7 @@ export const updateAvatar = CatchAsyncError(
 
 export const forgotPassword = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
+    try{
     const { email } = req.body;
 
     if (!email) {
@@ -404,11 +405,13 @@ export const forgotPassword = CatchAsyncError(
       success: true,
       message: `Reset link sent to ${user.email}`,
     });
-  }
+  }catch (error: any) {
+      return next(new ErrorHandler(error.message, 500));
+    }}
 );
 //Verify Link
 export const verifyResetLink = CatchAsyncError(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response, next: NextFunction) => {try{
     const { id, token } = req.params;
 
     // get token from redis
@@ -422,12 +425,14 @@ export const verifyResetLink = CatchAsyncError(
       success: true,
       message: "Reset link is valid",
     });
-  }
+  }catch (error: any) {
+      return next(new ErrorHandler(error.message, 500));
+    }}
 );
 
 // Verify Password
 export const resetPassword = CatchAsyncError(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, res: Response, next: NextFunction) => {try{
     const { id, token } = req.params;
     const { newPassword } = req.body;
 
@@ -457,6 +462,8 @@ export const resetPassword = CatchAsyncError(
       success: true,
       message: "Password has been reset successfully",
     });
-  }
+  }catch (error: any) {
+      return next(new ErrorHandler(error.message, 500));
+    }}
 );
 
