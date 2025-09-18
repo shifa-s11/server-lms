@@ -2,6 +2,8 @@ import mongoose,{Document,Model,Schema} from 'mongoose'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 require('dotenv').config()
+import { Types } from 'mongoose'
+import { Course } from './course.model'
 //Interface helps in compile time type checking helps in writing code while Schema helps in run time so ensure type safety in database
 const emailRegex:RegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export interface User extends Document{
@@ -13,6 +15,7 @@ export interface User extends Document{
         url:string,
     },
     role:string,
+    wishlist:(Types.ObjectId | Course)[],
     isVerified:boolean,
     courses:Array<{courseId:string}>,
     comparePassword:(password:string) => Promise<boolean>;
@@ -58,6 +61,10 @@ isVerified:{
     type:Boolean,
     default:false,
 },
+wishlist:[{
+type:mongoose.Schema.Types.ObjectId,
+ref:"Course"
+}],
 courses:[{
     courseId:String,
 }]

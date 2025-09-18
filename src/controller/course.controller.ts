@@ -10,6 +10,7 @@ import mongoose from "mongoose";
 import ejs from "ejs";
 import path from "path";
 import sendMail from '../utils/sendMail';
+import UserModel from '../models/user.model';
 
 // course upload 
 
@@ -357,3 +358,198 @@ catch (error: any) {
         return next(new ErrorHandler(error.message, 500));
     }
 }) 
+
+// Add to Wishlist
+export const addToWishlist = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+  const { courseId } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(courseId)) {
+    return next(new ErrorHandler("Invalid Course Id", 400));
+  }
+   const course = await CourseModel.findById(courseId);
+  if (!course) {
+    return next(new ErrorHandler("Course not found", 404));
+  }
+
+  const user = await UserModel.findById(req.user?._id);
+  if (!user) return next(new ErrorHandler("User not found", 404));
+
+  // Prevent duplicates
+  if (user.wishlist.includes(courseId)) {
+    return next(new ErrorHandler("Course already in wishlist", 400));
+  }
+
+  user.wishlist.push(courseId);
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Course added to wishlist",
+    wishlist: user.wishlist
+  });
+});
+
+// Remove from Wishlist
+export const removeFromWishlist = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+  const { courseId } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(courseId)) {
+    return next(new ErrorHandler("Invalid Course Id", 400));
+  }
+
+  const user = await UserModel.findById(req.user?._id);
+  if (!user) return next(new ErrorHandler("User not found", 404));
+
+    if (!user.wishlist.some((id) => id.toString() === courseId)) {
+    return next(new ErrorHandler("Course not in wishlist", 400));
+  }
+  user.wishlist = user.wishlist.filter((id) => id.toString() !== courseId);
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Course removed from wishlist",
+    wishlist: user.wishlist
+  });
+});
+
+// Get Wishlist
+export const getWishlist = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+  const user = await UserModel.findById(req.user?._id).populate("wishlist");
+  if (!user) return next(new ErrorHandler("User not found", 404));
+
+  res.status(200).json({
+    success: true,
+    wishlist: user.wishlist
+  });
+});
+
+// Mark Question as Helpful
+export const markQuestionHelpful = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { courseId, contentId, questionId } = req.body;
+
+    const course = await CourseModel.findById(courseId);
+    if (!course) return next(new ErrorHandler("Course not found", 404));
+
+    const courseContent = course.courseData.find((c: any) => c._id.equals(contentId));
+    if (!courseContent) return next(new ErrorHandler("Content not found", 404));
+
+    const question = courseContent.questions.find((q: any) => q._id.equals(questionId));
+    if (!question) return next(new ErrorHandler("Question not found", 404));
+
+    // Prevent duplicates
+    if (question.helpful.some((id: any) => id.toString() === req.user?._id.toString())) {
+      return next(new ErrorHandler("You already marked this question helpful", 400));
+    }
+
+    question.helpful.push(req.user?._id);
+    await course.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Marked question as helpful",
+      helpfulCount: question.helpful.length
+    });
+  } catch (error: any) {
+    console.error("Error:", error);
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
+
+
+// Unmark Question Helpful
+export const unmarkQuestionHelpful = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { courseId, contentId, questionId } = req.body;
+
+    const course = await CourseModel.findById(courseId);
+    if (!course) return next(new ErrorHandler("Course not found", 404));
+
+    const courseContent = course.courseData.find((c: any) => c._id.equals(contentId));
+    if (!courseContent) return next(new ErrorHandler("Content not found", 404));
+
+    const question = courseContent.questions.find((q: any) => q._id.equals(questionId));
+    if (!question) return next(new ErrorHandler("Question not found", 404));
+
+    question.helpful = question.helpful.filter((id: any) => id.toString() !== req.user?._id.toString());
+    await course.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Removed helpful mark from question",
+      helpfulCount: question.helpful.length
+    });
+  } catch (error: any) {
+    console.error("Error:", error);
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
+
+
+// Mark Answer as Helpful
+export const markAnswerHelpful = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { courseId, contentId, questionId, answerId } = req.body;
+
+    const course = await CourseModel.findById(courseId);
+    if (!course) return next(new ErrorHandler("Course not found", 404));
+
+    const courseContent = course.courseData.find((c: any) => c._id.equals(contentId));
+    if (!courseContent) return next(new ErrorHandler("Content not found", 404));
+
+    const question = courseContent.questions.find((q: any) => q._id.equals(questionId));
+    if (!question) return next(new ErrorHandler("Question not found", 404));
+
+    const answer = question.questionReplies.find((a: any) => a._id.equals(answerId));
+    if (!answer) return next(new ErrorHandler("Answer not found", 404));
+
+    if (answer.helpful.some((id: any) => id.toString() === req.user?._id.toString())) {
+      return next(new ErrorHandler("You already marked this answer helpful", 400));
+    }
+
+    answer.helpful.push(req.user?._id);
+    await course.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Marked answer as helpful",
+      helpfulCount: answer.helpful.length
+    });
+  } catch (error: any) {
+    console.error("Error:", error);
+    return next(new ErrorHandler(error.message, 500));
+  }
+});
+
+
+// Unmark Answer Helpful
+export const unmarkAnswerHelpful = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { courseId, contentId, questionId, answerId } = req.body;
+
+    const course = await CourseModel.findById(courseId);
+    if (!course) return next(new ErrorHandler("Course not found", 404));
+
+    const courseContent = course.courseData.find((c: any) => c._id.equals(contentId));
+    if (!courseContent) return next(new ErrorHandler("Content not found", 404));
+
+    const question = courseContent.questions.find((q: any) => q._id.equals(questionId));
+    if (!question) return next(new ErrorHandler("Question not found", 404));
+
+    const answer = question.questionReplies.find((a: any) => a._id.equals(answerId));
+    if (!answer) return next(new ErrorHandler("Answer not found", 404));
+
+    answer.helpful = answer.helpful.filter((id: any) => id.toString() !== req.user?._id.toString());
+    await course.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Removed helpful mark from answer",
+      helpfulCount: answer.helpful.length
+    });
+  } catch (error: any) {
+    console.error("Error:", error);
+    return next(new ErrorHandler(error.message, 500));
+  }
+});

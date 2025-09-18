@@ -1,11 +1,15 @@
 import mongoose,{Document,Schema,Model} from "mongoose";
 import { User } from "./user.model";
-import { object } from "zod";
+
+
+
 
 interface Comment extends Document{
     user:User,
     question:string
-    questionReplies:Comment[],
+    questionReplies:Comment[
+    ],
+    helpful: mongoose.Types.ObjectId[];
 }
 
 
@@ -14,7 +18,10 @@ interface Review extends Document{
     user:User,
     rating:number,
     comment:string,
-    commentReply:Comment[],
+    commentReply: {
+    user: User;
+    comment: string;
+  }[];
 }
 
 interface Link extends Document{
@@ -24,7 +31,7 @@ interface Link extends Document{
 
 interface CourseData extends Document{
     title:string,
-    description:string,
+    description?:string,
     videoUrl:string,
     videoThumbnail:object,
     videoSection:string,
@@ -35,7 +42,7 @@ interface CourseData extends Document{
     questions:Comment[],
 }
 
-interface Course extends Document {
+ export interface Course extends Document {
     name:string,
     description:string,
     price:number,
@@ -57,6 +64,20 @@ interface Course extends Document {
 
 }
 
+const replySchema = new Schema(
+  {
+    user: {
+      type: Object,
+      required: true,
+    },
+    answer: {
+      type: String,
+      required: true,
+    },
+     helpful: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  },
+  { timestamps: true } // also gives createdAt & updatedAt
+);
 const reviewSchema = new Schema<Review>({
 user:Object,
 rating:{
@@ -64,8 +85,18 @@ rating:{
     default:0
 },
 comment:String,
-commentReply:Object
-})
+commentReply: {
+      type: [
+        {
+          user: Object,
+          comment: String,
+        },
+      ],
+      default: [],
+    },
+  },
+  { timestamps: true }
+)
 
 const linkSchema = new Schema<Link>({
     title:String,
@@ -75,8 +106,11 @@ const linkSchema = new Schema<Link>({
 const commentSchema = new Schema<Comment>({
     user:Object,
     question:String,
-    questionReplies:[Object],
-})
+    questionReplies:[replySchema],
+    helpful: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }]
+},
+ { timestamps: true }
+)
 
 const courseDataSchema = new Schema<CourseData>({
 videoUrl:String,
