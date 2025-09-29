@@ -1,3 +1,4 @@
+import { getAllUserService, updateUserRoleService } from './../services/user.service';
 
 import { redis } from './../config/redis';
 import { accessTokenOpt, RefreshTokenOpt, sendToken } from './../utils/jwt';
@@ -12,6 +13,7 @@ import { getUserId } from '../services/user.service';
 import UserModel from '../models/user.model';
 import cloudinary from 'cloudinary'
 import crypto from "crypto";
+import { success } from 'zod';
 
 
 require("dotenv").config();
@@ -467,3 +469,40 @@ export const resetPassword = CatchAsyncError(
     }}
 );
 
+export const getAllUsers = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {try{
+getAllUserService(res);
+  }catch (error: any) {
+      return next(new ErrorHandler(error.message, 500));
+    }})
+
+  // update user role by admin only
+  export const updateRole = CatchAsyncError(async(req:Request,res:Response,next:NextFunction)=>{
+    try{
+const{id,role} = req.body;
+console.log(role)
+console.log("hii")
+ await updateUserRoleService(res,id,role);
+    }catch (error: any) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+
+  export const deleteUser =  CatchAsyncError(async(req:Request,res:Response,next:NextFunction)=>{
+    try{
+      const {id} = req.params;
+      const user =  await UserModel.findById(id);
+      if(!user){
+         return next(new ErrorHandler("User not found", 404));
+      }
+      await user.deleteOne();
+      await redis.del(id);
+      res.status(200).json({
+        success:true,
+        message:"User deleted successfully"
+      })
+    }
+    catch (error: any) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })

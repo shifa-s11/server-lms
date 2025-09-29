@@ -2,7 +2,7 @@ import { CatchAsyncError } from './../middleware/catchAsyncError';
 import { Request, Response, NextFunction } from "express";
 import ErrorHandler from "../utils/ErrorHandler";
 import cloudinary from 'cloudinary'
-import { createCourse } from "../services/course.service";
+import { createCourse, getAllCourseService } from "../services/course.service";
 import CourseModel from "../models/course.model";
 import { success } from "zod";
 import { redis } from './../config/redis';
@@ -11,7 +11,7 @@ import ejs from "ejs";
 import path from "path";
 import sendMail from '../utils/sendMail';
 import UserModel from '../models/user.model';
-
+import NotificationModel from '../models/notificationmodel';
 // course upload 
 
 export const uploadCourse = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
@@ -185,6 +185,11 @@ res.status(200).json({
             
         }
         courseContent.questions.push(newQuestion)
+            await NotificationModel.create({
+      user: req.user?._id,
+      title: "New Question",
+      message: `You have a new question in ${courseContent?.title}`
+    });
         
         await course?.save();
         res.status(200).json({
@@ -237,7 +242,11 @@ question.questionReplies.push(newAnswer)
 await course?.save();
 
 if(req.user?._id === question.user._id){
-    // reate a notification
+                await NotificationModel.create({
+      user: req.user?._id,
+      title: "New Question Reply Received",
+      message: `You have a new question reply in  ${courseContent?.title}`
+    });
 }else{
     const data = {
         name:question.user.name,
@@ -553,3 +562,36 @@ export const unmarkAnswerHelpful = CatchAsyncError(async (req: Request, res: Res
     return next(new ErrorHandler(error.message, 500));
   }
 });
+
+//get all courses 
+export const getAllCourses = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {try{
+getAllCourseService(res);
+  }catch (error: any) {
+      return next(new ErrorHandler(error.message, 500));
+    }})
+
+    //delete course
+  export const deleteCourse = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+
+      const course = await CourseModel.findById(id);
+
+      if (!course) {
+        return next(new ErrorHandler("Course not found", 404));
+      }
+
+      await course.deleteOne();
+      await redis.del(id);
+
+      res.status(200).json({
+        success: true,
+        message: "Course deleted successfully",
+      });
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  }
+);

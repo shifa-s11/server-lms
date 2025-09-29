@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Order Confirmation</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9fafb;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 30px auto;
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 25px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #4CAF50;
+      margin-bottom: 20px;
+    }
+    .order-details {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    .order-details th,
+    .order-details td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+    }
+    .order-details th {
+      background-color: #f4f4f4;
+    }
+    .footer {
+      margin-top: 20px;
+      font-size: 14px;
+      color: #666;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🎉 Your order was placed successfully!</h2>
+    <p>Thank you for purchasing <strong><%= order.name %></strong>.</p>
+
+    <table class="order-details">
+      <tr>
+        <th>Order ID</th>
+        <td><%= order._id %></td>
+      </tr>
+      <tr>
+        <th>Course</th>
+        <td><%= order.name %></td>
+      </tr>
+      <tr>
+        <th>Price</th>
+        <td>$<%= order.price %></td>
+      </tr>
+      <tr>
+        <th>Date</th>
+        <td><%= order.date %></td>
+      </tr>
+    </table>
+
+    <p class="footer">You can now access your course in your dashboard. 🚀</p>
+  </div>
+</body>
+</html>

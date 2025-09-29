@@ -1,4 +1,4 @@
-import { addAnswer, addQuestion, addReply, addReview, addToWishlist, getCourseByUser, getWishlist, removeFromWishlist,markAnswerHelpful,markQuestionHelpful,unmarkAnswerHelpful,unmarkQuestionHelpful } from './../controller/course.controller';
+import { addAnswer, addQuestion, addReply, addReview, addToWishlist, getCourseByUser, getWishlist, removeFromWishlist,markAnswerHelpful,markQuestionHelpful,unmarkAnswerHelpful,unmarkQuestionHelpful, deleteCourse } from './../controller/course.controller';
 import express from 'express'
 import { editCourse, getAllCourse, getSingleCourse, uploadCourse } from "../controller/course.controller";
 import { isAuth,authorizedRoles } from "../middleware/auth";
@@ -34,3 +34,7 @@ courseRouter.post("/question/unhelpful", isAuth, unmarkQuestionHelpful);
 
 courseRouter.post("/answer/helpful", isAuth, markAnswerHelpful);
 courseRouter.post("/answer/unhelpful", isAuth, unmarkAnswerHelpful);
+
+courseRouter.get("/get-course",isAuth,authorizedRoles("admin"),getAllCourse)
+
+courseRouter.delete("/delete-course/:id",isAuth,authorizedRoles("admin"),deleteCourse)
