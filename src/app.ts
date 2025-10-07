@@ -8,6 +8,7 @@ import userRouter from "./routes/user.route";
 import courseRouter from "./routes/course.route";
 import orderRouter from "./routes/order.route";
 import notificationRoute from "./routes/notification.route";
+import layoutRouter from "./routes/layout.route";
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -20,6 +21,7 @@ app.use('/api/v1',userRouter)
 app.use('/api/v1',courseRouter)
 app.use('/api/v1',orderRouter)
 app.use('/api/v1',notificationRoute)
+app.use('/api/v1',layoutRouter)
 app.get('/test',(req:Request,res:Response)=>{
 res.send("Test route is working!");
 })

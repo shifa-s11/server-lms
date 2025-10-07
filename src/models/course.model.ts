@@ -172,7 +172,7 @@ const courseSchema = new Schema<Course>({
             default:0
         }
     
-})
+},{timestamps:true})
 
 const CourseModel:Model<Course> = mongoose.model("Course",courseSchema)
 

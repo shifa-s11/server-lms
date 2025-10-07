@@ -2,6 +2,7 @@ import { addAnswer, addQuestion, addReply, addReview, addToWishlist, getCourseBy
 import express from 'express'
 import { editCourse, getAllCourse, getSingleCourse, uploadCourse } from "../controller/course.controller";
 import { isAuth,authorizedRoles } from "../middleware/auth";
+import { getCourseAnalytics } from '../controller/analytics.controller';
 
 
 const courseRouter = express.Router()
@@ -38,3 +39,5 @@ courseRouter.post("/answer/unhelpful", isAuth, unmarkAnswerHelpful);
 courseRouter.get("/get-course",isAuth,authorizedRoles("admin"),getAllCourse)
 
 courseRouter.delete("/delete-course/:id",isAuth,authorizedRoles("admin"),deleteCourse)
+
+courseRouter.get("/get-course-analytics",isAuth,authorizedRoles("admin"),getCourseAnalytics)

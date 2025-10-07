@@ -3,6 +3,7 @@ import { authorizedRoles, isAuth } from './../middleware/auth';
 import express from 'express'
 import { registrationUser,activateUser, loginUser, logoutUser, updateAccessToken } from '../controller/user.controller'
 import { getAllCourse } from '../controller/course.controller';
+import { getUserAnalytics } from '../controller/analytics.controller';
 const userRouter = express.Router()
 
 userRouter.post('/register',registrationUser);
@@ -36,5 +37,8 @@ userRouter.get("/get-users",isAuth,authorizedRoles("admin"),getAllUsers)
 userRouter.put("/update-user-role",isAuth,authorizedRoles("admin"),updateRole)
 
 userRouter.delete("/delete-user/:id",isAuth,authorizedRoles("admin"),deleteUser)
+
+//analytics route 
+userRouter.get("/get-user-analytics",isAuth,authorizedRoles("admin"),getUserAnalytics)
 
 export default userRouter;
