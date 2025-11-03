@@ -247,16 +247,9 @@ interface UpdateUser{
 
 export const updateUserInfo = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
   try{
-    const{name,email} = req.body as UpdateUser
+    const{name} = req.body as UpdateUser
 const userId = req.user?._id?.toString();
 const user = await userModel.findById(userId)
-if(email&&user){
-  const isEmailExist = await userModel.findOne({email});
-  if(isEmailExist){
-    return next(new ErrorHandler("Email already exist", 400))
-  }
-  user.email = email
-}
 if(name && user){
   user.name = name;
 }
@@ -396,7 +389,7 @@ export const forgotPassword = CatchAsyncError(
     // store in redis with expiry (10 minutes)
     await redis.set(`reset:${user._id}`, resetToken, { EX: 600 });
 
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${user._id}/${resetToken}`;
+    const resetUrl = `${process.env.ORIGIN}/reset-password/${user._id}/${resetToken}`;
 
     await sendMail({
       email: user.email,
