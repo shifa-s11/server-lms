@@ -12,19 +12,21 @@ userRouter.post('/activate',activateUser)
 
 userRouter.post('/login',loginUser)
 
-userRouter.get('/logout',isAuth,logoutUser)
+userRouter.get('/logout',updateAccessToken,isAuth,logoutUser)
 
-userRouter.get('/refresh',updateAccessToken)
+userRouter.get("/refresh", updateAccessToken, (req,res)=>{
+    res.status(200).json({ success:true });
+});
 
-userRouter.get('/me',isAuth,getUserInfo)
+userRouter.get('/me',updateAccessToken,isAuth,getUserInfo)
 
 userRouter.post('/socialAuth',socialAuth)
 
-userRouter.put('/updateUser',isAuth,updateUserInfo)
+userRouter.put('/updateUser',updateAccessToken,isAuth,updateUserInfo)
 
-userRouter.put('/updatePassword',isAuth,updatePassword)
+userRouter.put('/updatePassword',updateAccessToken,isAuth,updatePassword)
 
-userRouter.put('/updateAvatar',isAuth,updateAvatar)
+userRouter.put('/updateAvatar',updateAccessToken,isAuth,updateAvatar)
 
 userRouter.post('/forgot',forgotPassword);
 
@@ -32,9 +34,9 @@ userRouter.post("/reset-password/:id/:token", resetPassword);
 
 userRouter.get("/reset-password/:id/:token", verifyResetLink);
 
-userRouter.get("/get-users",isAuth,authorizedRoles("admin"),getAllUsers)
+userRouter.get("/get-users",updateAccessToken,isAuth,authorizedRoles("admin"),getAllUsers)
 
-userRouter.put("/update-user-role",isAuth,authorizedRoles("admin"),updateRole)
+userRouter.put("/update-user-role",updateAccessToken,isAuth,authorizedRoles("admin"),updateRole)
 
 userRouter.delete("/delete-user/:id",isAuth,authorizedRoles("admin"),deleteUser)
 

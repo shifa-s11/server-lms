@@ -25,8 +25,12 @@ user
 
  // update user role
 
- export const updateUserRoleService = async(res:Response,id:string,role:string) => {
-    const user = await UserModel.findByIdAndUpdate(id,{role},{new:true});
+ export const updateUserRoleService = async(res:Response,email:string,role:string) => {
+      const user = await UserModel.findOneAndUpdate(
+    { email },          
+    { role },            
+    { new: true }       
+  );
     res.status(201).json({
         success:true,
         user

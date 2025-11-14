@@ -170,6 +170,8 @@ export const logoutUser = CatchAsyncError(async (req: Request, res: Response, ne
 export const updateAccessToken = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
   try {
     const refresh_token = req.cookies.refresh_token as string;
+    
+   if (!refresh_token) return next();
     const decoded = jwt.verify(refresh_token, process.env.REFRESH_TOKEN as string) as JwtPayload;
     const message = 'Could not refresh token';
     if (!decoded) {
@@ -192,10 +194,11 @@ export const updateAccessToken = CatchAsyncError(async (req: Request, res: Respo
     res.cookie("refresh_token", refreshToken, RefreshTokenOpt)
 
 await redis.set(user._id.toString(), JSON.stringify(user), { EX: 604800 });
-    res.status(200).json({
-      status: "success",
-      accessToken,
-    })
+next();
+    // res.status(200).json({
+    //   status: "success",
+    //   accessToken,
+    // })
   } catch (error: any) {
     return next(new ErrorHandler(error.message, 500))
   }
@@ -474,10 +477,9 @@ getAllUserService(res);
   // update user role by admin only
   export const updateRole = CatchAsyncError(async(req:Request,res:Response,next:NextFunction)=>{
     try{
-const{id,role} = req.body;
+const{email,role} = req.body;
 console.log(role)
-console.log("hii")
- await updateUserRoleService(res,id,role);
+ await updateUserRoleService(res,email,role);
     }catch (error: any) {
       return next(new ErrorHandler(error.message, 500));
     }

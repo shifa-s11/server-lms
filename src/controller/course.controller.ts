@@ -12,8 +12,8 @@ import path from "path";
 import sendMail from '../utils/sendMail';
 import UserModel from '../models/user.model';
 import NotificationModel from '../models/notificationmodel';
-// course upload 
 
+// course upload 
 export const uploadCourse = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const data = req.body;
@@ -43,7 +43,6 @@ export const uploadCourse = CatchAsyncError(async (req: Request, res: Response, 
 });
 
 //edit course 
-
 export const editCourse = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
         const courseId = req.params.id;
@@ -114,22 +113,23 @@ else{
 //getAllCourses
 export const getAllCourse = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-const isCacheExist = await redis.get("allCourses")
- if(isCacheExist){
-            const course = JSON.parse(isCacheExist);
-             res.status(200).json({
-            success: true,
-            course
-        })
-        }
-else{
+// const isCacheExist = await redis.get("allCourses")
+//  if(isCacheExist){
+//             const course = JSON.parse(isCacheExist);
+//              res.status(200).json({
+//             success: true,
+//             course
+//         })
+//         }
+// else{
         const courses = await CourseModel.find().select("-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links")
-         await redis.set("allCourses",JSON.stringify(courses))
+        //  await redis.set("allCourses",JSON.stringify(courses))
         res.status(200).json({
             success: true,
             courses
         })}
-    } catch (error: any) {
+    // }
+     catch (error: any) {
         console.error(" Error:", error);
         return next(new ErrorHandler(error.message, 500));
     }

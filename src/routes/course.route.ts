@@ -1,43 +1,44 @@
-import { addAnswer, addQuestion, addReply, addReview, addToWishlist, getCourseByUser, getWishlist, removeFromWishlist,markAnswerHelpful,markQuestionHelpful,unmarkAnswerHelpful,unmarkQuestionHelpful, deleteCourse } from './../controller/course.controller';
+import { updateAccessToken } from './../controller/user.controller';
+import { addAnswer, addQuestion, addReply, addReview, addToWishlist, getCourseByUser, getWishlist, removeFromWishlist, markAnswerHelpful, markQuestionHelpful, unmarkAnswerHelpful, unmarkQuestionHelpful, deleteCourse } from './../controller/course.controller';
 import express from 'express'
 import { editCourse, getAllCourse, getSingleCourse, uploadCourse } from "../controller/course.controller";
-import { isAuth,authorizedRoles } from "../middleware/auth";
+import { isAuth, authorizedRoles } from "../middleware/auth";
 import { getCourseAnalytics } from '../controller/analytics.controller';
 
 
 const courseRouter = express.Router()
 
-courseRouter.post("/create-course",isAuth,authorizedRoles("admin"),uploadCourse)
+courseRouter.post("/create-course", updateAccessToken, isAuth, authorizedRoles("admin"), uploadCourse)
 
-courseRouter.put("/edit-course/:id",isAuth,authorizedRoles("admin"),editCourse)
+courseRouter.put("/edit-course/:id", updateAccessToken, isAuth, authorizedRoles("admin"), editCourse)
 
-courseRouter.get("/get-course/:id",getSingleCourse)
+courseRouter.get("/get-course/:id", getSingleCourse)
 export default courseRouter
 
-courseRouter.get("/get-allCourses/",getAllCourse)
+courseRouter.get("/get-allCourses/", getAllCourse)
 
-courseRouter.get("/get-course-content/:id",isAuth,getCourseByUser)
+courseRouter.get("/get-course-content/:id", updateAccessToken, isAuth, getCourseByUser)
 
-courseRouter.put("/add-question",isAuth,addQuestion)
+courseRouter.put("/add-question", updateAccessToken, isAuth, addQuestion)
 
-courseRouter.put("/add-answer",isAuth,addAnswer)
+courseRouter.put("/add-answer", updateAccessToken, isAuth, addAnswer)
 
-courseRouter.put("/add-review/:id",isAuth,addReview)
+courseRouter.put("/add-review/:id", updateAccessToken, isAuth, addReview)
 
-courseRouter.put("/add-reply",isAuth,authorizedRoles("admin"),addReply)
+courseRouter.put("/add-reply", updateAccessToken, isAuth, authorizedRoles("admin"), addReply)
 
-courseRouter.post("/add-wishlist",isAuth,addToWishlist)
-courseRouter.delete("/remove-wishlist",isAuth,removeFromWishlist)
-courseRouter.get("/get-wishlist/",isAuth,getWishlist)
+courseRouter.post("/add-wishlist", updateAccessToken, isAuth, addToWishlist)
+courseRouter.delete("/remove-wishlist", updateAccessToken, isAuth, removeFromWishlist)
+courseRouter.get("/get-wishlist/", updateAccessToken, isAuth, getWishlist)
 
-courseRouter.post("/question/helpful", isAuth, markQuestionHelpful);
-courseRouter.post("/question/unhelpful", isAuth, unmarkQuestionHelpful);
+courseRouter.post("/question/helpful", updateAccessToken, isAuth, markQuestionHelpful);
+courseRouter.post("/question/unhelpful", updateAccessToken, isAuth, unmarkQuestionHelpful);
 
-courseRouter.post("/answer/helpful", isAuth, markAnswerHelpful);
-courseRouter.post("/answer/unhelpful", isAuth, unmarkAnswerHelpful);
+courseRouter.post("/answer/helpful", updateAccessToken, isAuth, markAnswerHelpful);
+courseRouter.post("/answer/unhelpful", updateAccessToken, isAuth, unmarkAnswerHelpful);
 
-courseRouter.get("/get-course",isAuth,authorizedRoles("admin"),getAllCourse)
+courseRouter.get("/get-course", updateAccessToken, isAuth, authorizedRoles("admin"), getAllCourse)
 
-courseRouter.delete("/delete-course/:id",isAuth,authorizedRoles("admin"),deleteCourse)
+courseRouter.delete("/delete-course/:id", updateAccessToken, isAuth, authorizedRoles("admin"), deleteCourse)
 
-courseRouter.get("/get-course-analytics",isAuth,authorizedRoles("admin"),getCourseAnalytics)
+courseRouter.get("/get-course-analytics", updateAccessToken, isAuth, authorizedRoles("admin"), getCourseAnalytics)
