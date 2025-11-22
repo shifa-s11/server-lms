@@ -43,45 +43,103 @@ export const uploadCourse = CatchAsyncError(async (req: Request, res: Response, 
 });
 
 //edit course 
+// export const editCourse = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         const courseId = req.params.id;
+//         const data = req.body;
+
+//         const course = await CourseModel.findById(courseId);
+//         if (!course) {
+//             return next(new ErrorHandler("Course not found", 404));
+//         }
+//         const thumbnail = data.thumbnail
+//         if (thumbnail) {
+//             if (thumbnail?.public_id) {
+//                 await cloudinary.v2.uploader.destroy(thumbnail.public_id);
+//             }
+//             const myCloud = await cloudinary.v2.uploader.upload(data.thumbnail, {
+//                 folder: "courses",
+//             });
+
+//             data.thumbnail = {
+//                 public_id: myCloud.public_id,
+//                 url: myCloud.secure_url,
+//             };
+//         }
+
+//         const updatedCourse = await CourseModel.findByIdAndUpdate(
+//             courseId,
+//             { $set: data },
+//             { new: true, runValidators: true }
+//         );
+
+//         res.status(200).json({
+//             success: true,
+//             message: "Course updated successfully",
+//             course: updatedCourse,
+//         });
+//     } catch (error: any) {
+//         console.error("EditCourse Error:", error);
+//         return next(new ErrorHandler(error.message, 500));
+//     }
+// });
+
 export const editCourse = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const courseId = req.params.id;
-        const data = req.body;
+  try {
+    const courseId = req.params.id;
+    const data = req.body;
 
-        const course = await CourseModel.findById(courseId);
-        if (!course) {
-            return next(new ErrorHandler("Course not found", 404));
-        }
-        const thumbnail = data.thumbnail
-        if (thumbnail) {
-            if (thumbnail?.public_id) {
-                await cloudinary.v2.uploader.destroy(thumbnail.public_id);
-            }
-            const myCloud = await cloudinary.v2.uploader.upload(data.thumbnail, {
-                folder: "courses",
-            });
-
-            data.thumbnail = {
-                public_id: myCloud.public_id,
-                url: myCloud.secure_url,
-            };
-        }
-
-        const updatedCourse = await CourseModel.findByIdAndUpdate(
-            courseId,
-            { $set: data },
-            { new: true, runValidators: true }
-        );
-
-        res.status(200).json({
-            success: true,
-            message: "Course updated successfully",
-            course: updatedCourse,
-        });
-    } catch (error: any) {
-        console.error("EditCourse Error:", error);
-        return next(new ErrorHandler(error.message, 500));
+    const course = await CourseModel.findById(courseId);
+    if (!course) {
+      return next(new ErrorHandler("Course not found", 404));
     }
+
+    let newThumbnailData = course.thumbnail; // default → keep old thumbnail
+
+    // If a new thumbnail is provided AND it's a base64 image
+    if (data.thumbnail && data.thumbnail.startsWith("data:image")) {
+      // Delete old thumbnail if exists
+      if (course.thumbnail?.public_id) {
+        await cloudinary.v2.uploader.destroy(course.thumbnail.public_id);
+      }
+
+      // Upload new image
+      const upload = await cloudinary.v2.uploader.upload(data.thumbnail, {
+        folder: "courses",
+      });
+
+      newThumbnailData = {
+        public_id: upload.public_id,
+        url: upload.secure_url,
+      };
+    }
+
+    // Remove thumbnail from data to prevent overwriting with empty string
+    delete data.thumbnail;
+
+    // Build safe update object
+    const updatePayload: any = {
+      ...data,
+      thumbnail: newThumbnailData, // always keep valid object
+    };
+
+    const updatedCourse = await CourseModel.findByIdAndUpdate(courseId, {
+      $set: updatePayload,
+    }, {
+      new: true,
+      runValidators: true,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Course updated successfully",
+      course: updatedCourse,
+    });
+
+  } catch (error: any) {
+    console.error("EditCourse Error:", error);
+    return next(new ErrorHandler(error.message, 500));
+  }
 });
 
 //get single course 
@@ -564,7 +622,7 @@ export const unmarkAnswerHelpful = CatchAsyncError(async (req: Request, res: Res
 });
 
 //get all courses 
-export const getAllCourses = CatchAsyncError(
+export const getAdminCourses = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {try{
 getAllCourseService(res);
   }catch (error: any) {

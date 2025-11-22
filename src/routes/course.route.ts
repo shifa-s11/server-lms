@@ -1,5 +1,5 @@
 import { updateAccessToken } from './../controller/user.controller';
-import { addAnswer, addQuestion, addReply, addReview, addToWishlist, getCourseByUser, getWishlist, removeFromWishlist, markAnswerHelpful, markQuestionHelpful, unmarkAnswerHelpful, unmarkQuestionHelpful, deleteCourse } from './../controller/course.controller';
+import { addAnswer, addQuestion, addReply, addReview, addToWishlist, getCourseByUser, getWishlist, removeFromWishlist, markAnswerHelpful, markQuestionHelpful, unmarkAnswerHelpful, unmarkQuestionHelpful, deleteCourse, getAdminCourses } from './../controller/course.controller';
 import express from 'express'
 import { editCourse, getAllCourse, getSingleCourse, uploadCourse } from "../controller/course.controller";
 import { isAuth, authorizedRoles } from "../middleware/auth";
@@ -16,6 +16,8 @@ courseRouter.get("/get-course/:id", getSingleCourse)
 export default courseRouter
 
 courseRouter.get("/get-allCourses/", getAllCourse)
+
+courseRouter.get("/getAdminCourses",isAuth,authorizedRoles("admin"),getAdminCourses)
 
 courseRouter.get("/get-course-content/:id", updateAccessToken, isAuth, getCourseByUser)
 

@@ -120,6 +120,7 @@ videoLength:Number,
 videoPlayer:String,
 links:[linkSchema],
 suggestion:String,
+description:String,
 questions:[commentSchema]
 })
 
