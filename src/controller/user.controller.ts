@@ -167,42 +167,93 @@ export const logoutUser = CatchAsyncError(async (req: Request, res: Response, ne
   }
 })
 
-export const updateAccessToken = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const refresh_token = req.cookies.refresh_token as string;
+// export const updateAccessToken = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+//   try {
+//     const refresh_token = req.cookies.refresh_token as string;
     
-   if (!refresh_token) return next();
-    const decoded = jwt.verify(refresh_token, process.env.REFRESH_TOKEN as string) as JwtPayload;
-    const message = 'Could not refresh token';
-    if (!decoded) {
-      return next(new ErrorHandler(message, 400))
+//    if (!refresh_token) return next();
+//     const decoded = jwt.verify(refresh_token, process.env.REFRESH_TOKEN as string) as JwtPayload;
+//     const message = 'Could not refresh token';
+//     if (!decoded) {
+//       return next(new ErrorHandler(message, 400))
+//     }
+//     const session = await redis.get(decoded.id as string)
+//     if (!session) {
+//       return next(new ErrorHandler(message, 400))
+//     }
+//     const user = JSON.parse(session);
+//     const accessToken = jwt.sign({ id: user._id }, process.env.ACCESS_TOKEN as string, {
+//       expiresIn: "5m"
+//     })
+
+//     const refreshToken = jwt.sign({ id: user._id }, process.env.REFRESH_TOKEN as string, {
+//       expiresIn: "7d"
+//     })
+//     req.user = user
+//     res.cookie("access_token", accessToken, accessTokenOpt)
+//     res.cookie("refresh_token", refreshToken, RefreshTokenOpt)
+
+// await redis.set(user._id.toString(), JSON.stringify(user), { EX: 604800 });
+// next();
+//     // res.status(200).json({
+//     //   status: "success",
+//     //   accessToken,
+//     // })
+//   } catch (error: any) {
+//     return next(new ErrorHandler(error.message, 500))
+//   }
+// })
+
+export const updateAccessToken = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const refresh_token = req.cookies.refresh_token;
+
+    if (!refresh_token) {
+      return next(new ErrorHandler("No refresh token, please login again", 401));
     }
-    const session = await redis.get(decoded.id as string)
+
+    let decoded;
+    try {
+      decoded = jwt.verify(
+        refresh_token,
+        process.env.REFRESH_TOKEN as string
+      ) as JwtPayload;
+    } catch (err) {
+      return next(new ErrorHandler("Refresh token expired, login again", 401));
+    }
+
+    const session = await redis.get(decoded.id);
     if (!session) {
-      return next(new ErrorHandler(message, 400))
+      return next(new ErrorHandler("Session expired, login again", 401));
     }
+
     const user = JSON.parse(session);
-    const accessToken = jwt.sign({ id: user._id }, process.env.ACCESS_TOKEN as string, {
-      expiresIn: "5m"
-    })
 
-    const refreshToken = jwt.sign({ id: user._id }, process.env.REFRESH_TOKEN as string, {
-      expiresIn: "7d"
-    })
-    req.user = user
-    res.cookie("access_token", accessToken, accessTokenOpt)
-    res.cookie("refresh_token", refreshToken, RefreshTokenOpt)
+    const accessToken = jwt.sign(
+      { id: user._id },
+      process.env.ACCESS_TOKEN as string,
+      { expiresIn: "5m" }
+    );
 
-await redis.set(user._id.toString(), JSON.stringify(user), { EX: 604800 });
-next();
-    // res.status(200).json({
-    //   status: "success",
-    //   accessToken,
-    // })
-  } catch (error: any) {
-    return next(new ErrorHandler(error.message, 500))
+    const refreshToken = jwt.sign(
+      { id: user._id },
+      process.env.REFRESH_TOKEN as string,
+      { expiresIn: "7d" }
+    );
+
+    res.cookie("access_token", accessToken, accessTokenOpt);
+    res.cookie("refresh_token", refreshToken, RefreshTokenOpt);
+
+    req.user = user;
+
+    await redis.set(user._id.toString(), JSON.stringify(user), {
+      EX: 60 * 60 * 24 * 7,
+    });
+
+    next();
   }
-})
+);
+
 //get userInfo
 export const getUserInfo = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
   try {

@@ -1,5 +1,6 @@
 import mongoose,{Document,Schema,Model} from "mongoose";
 import { User } from "./user.model";
+import { required } from "zod/mini";
 
 
 
@@ -33,7 +34,7 @@ interface CourseData extends Document{
     title:string,
     description?:string,
     videoUrl:string,
-    videoThumbnail:object,
+    // videoThumbnail:object,
     videoSection:string,
     videoLength:number,
     videoPlayer:string,
@@ -45,6 +46,7 @@ interface CourseData extends Document{
  export interface Course extends Document {
     name:string,
     description:string,
+    category:string
     price:number,
     estimatedPrice?:number,
     thumbnail:object,
@@ -116,7 +118,10 @@ const courseDataSchema = new Schema<CourseData>({
 videoUrl:String,
 title:String,
 videoSection:String,
-videoLength:Number,
+  videoLength: {
+    type: Number,
+    default: 0,
+  },
 videoPlayer:String,
 links:[linkSchema],
 suggestion:String,
@@ -132,6 +137,10 @@ const courseSchema = new Schema<Course>({
     description:{
         type:String,
         required:true,
+    },
+    category:{
+      type:String,
+      required:true
     },
     price:{
         type:Number,

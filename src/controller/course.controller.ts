@@ -4,7 +4,6 @@ import ErrorHandler from "../utils/ErrorHandler";
 import cloudinary from 'cloudinary'
 import { createCourse, getAllCourseService } from "../services/course.service";
 import CourseModel from "../models/course.model";
-import { success } from "zod";
 import { redis } from './../config/redis';
 import mongoose from "mongoose";
 import ejs from "ejs";
@@ -42,47 +41,6 @@ export const uploadCourse = CatchAsyncError(async (req: Request, res: Response, 
     }
 });
 
-//edit course 
-// export const editCourse = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
-//     try {
-//         const courseId = req.params.id;
-//         const data = req.body;
-
-//         const course = await CourseModel.findById(courseId);
-//         if (!course) {
-//             return next(new ErrorHandler("Course not found", 404));
-//         }
-//         const thumbnail = data.thumbnail
-//         if (thumbnail) {
-//             if (thumbnail?.public_id) {
-//                 await cloudinary.v2.uploader.destroy(thumbnail.public_id);
-//             }
-//             const myCloud = await cloudinary.v2.uploader.upload(data.thumbnail, {
-//                 folder: "courses",
-//             });
-
-//             data.thumbnail = {
-//                 public_id: myCloud.public_id,
-//                 url: myCloud.secure_url,
-//             };
-//         }
-
-//         const updatedCourse = await CourseModel.findByIdAndUpdate(
-//             courseId,
-//             { $set: data },
-//             { new: true, runValidators: true }
-//         );
-
-//         res.status(200).json({
-//             success: true,
-//             message: "Course updated successfully",
-//             course: updatedCourse,
-//         });
-//     } catch (error: any) {
-//         console.error("EditCourse Error:", error);
-//         return next(new ErrorHandler(error.message, 500));
-//     }
-// });
 
 export const editCourse = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -156,12 +114,23 @@ export const getSingleCourse = CatchAsyncError(async (req: Request, res: Respons
         })
         }
 else{
-        const course = await CourseModel.findById(req.params.id).select("-courseData.videoUrl -courseData.suggestion -courseData.questions -courseData.links")
-        await redis.set(courseId,JSON.stringify(course), { EX: 604800 })
+  console.log("hii")
+    const course = await CourseModel.findById(courseId)
+      .select({
+        "courseData.videoUrl": 0,
+        "courseData.suggestion": 0,
+        "courseData.questions": 0,
+        "courseData.links": 0,
+      });
+        await redis.set(courseId,JSON.stringify(course), { EX: 604800 }
+      )
+      console.log(course)
+      
         res.status(200).json({
             success: true,
             course
         })}
+        
     } catch (error: any) {
         console.error("Error:", error);
         return next(new ErrorHandler(error.message, 500));

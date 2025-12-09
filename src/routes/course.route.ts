@@ -13,7 +13,7 @@ courseRouter.post("/create-course", updateAccessToken, isAuth, authorizedRoles("
 courseRouter.put("/edit-course/:id", updateAccessToken, isAuth, authorizedRoles("admin"), editCourse)
 
 courseRouter.get("/get-course/:id", getSingleCourse)
-export default courseRouter
+
 
 courseRouter.get("/get-allCourses/", getAllCourse)
 
@@ -44,3 +44,5 @@ courseRouter.get("/get-course", updateAccessToken, isAuth, authorizedRoles("admi
 courseRouter.delete("/delete-course/:id", updateAccessToken, isAuth, authorizedRoles("admin"), deleteCourse)
 
 courseRouter.get("/get-course-analytics", updateAccessToken, isAuth, authorizedRoles("admin"), getCourseAnalytics)
+
+export default courseRouter

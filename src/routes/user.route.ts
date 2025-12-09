@@ -14,9 +14,17 @@ userRouter.post('/login',loginUser)
 
 userRouter.get('/logout',updateAccessToken,isAuth,logoutUser)
 
-userRouter.get("/refresh", updateAccessToken, (req,res)=>{
-    res.status(200).json({ success:true });
-});
+userRouter.get(
+  "/refresh",
+  updateAccessToken,
+  (req, res) => {
+    return res.status(200).json({
+      success: true,
+      accessToken: req.cookies.access_token,
+      user: req.user,
+    });
+  }
+);
 
 userRouter.get('/me',updateAccessToken,isAuth,getUserInfo)
 

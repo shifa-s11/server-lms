@@ -4,6 +4,7 @@ import UserModel from "../models/user.model";
 import { success } from "zod";
  export const getUserId = async(id:string,res:Response) => {
     const userJ = await redis.get(id)
+    console.log(userJ)
     if(userJ){
 const user = JSON.parse(userJ)
 res.status(201).json({

@@ -182,22 +182,22 @@ export const editLayout = CatchAsyncError(
 //       await LayoutModel.findByIdAndUpdate(bannerData._id,{banner})
 //     }
 
-//      if (type === "FAQ") {
-//         const { faq } = req.body;
-//         if (!faq || !Array.isArray(faq))
-//           return next(new ErrorHandler("FAQ must be an array", 400));
+     if (type === "FAQ") {
+        const { faq } = req.body;
+        if (!faq || !Array.isArray(faq))
+          return next(new ErrorHandler("FAQ must be an array", 400));
 
-//         const updatedLayout = await LayoutModel.findByIdAndUpdate(
-//           layoutData._id,
-//           { faq },
-//           { new: true }
-//         );
+        const updatedLayout = await LayoutModel.findByIdAndUpdate(
+          layoutData._id,
+          { faq },
+          { new: true }
+        );
 
-//         return res.status(200).json({
-//           success: true,
-//           layout: updatedLayout,
-//         });
-//       }
+        return res.status(200).json({
+          success: true,
+          layout: updatedLayout,
+        });
+      }
 
 if (type === "Banner") {
   const bannerData: any = await LayoutModel.findOne({ type: "Banner" });
