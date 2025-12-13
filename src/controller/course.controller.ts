@@ -114,7 +114,6 @@ export const getSingleCourse = CatchAsyncError(async (req: Request, res: Respons
         })
         }
 else{
-  console.log("hii")
     const course = await CourseModel.findById(courseId)
       .select({
         "courseData.videoUrl": 0,
@@ -166,13 +165,30 @@ export const getAllCourse = CatchAsyncError(async (req: Request, res: Response, 
 
 export const getCourseByUser = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
     try {
-const userCourse = req.user?.courses;
-const courseId = req.params.id;
-const courseExist = userCourse?.find((course:any) => course._id.toString() === courseId
-)
-if(!courseExist){
-return next (new ErrorHandler("You are not eligible to access this course",404))
-}
+// const userCourse = req.user?.courses;
+// const courseId = req.params.id;
+// const courseExist = userCourse?.find((course:any) => course._id.toString() === courseId
+// )
+// if(!courseExist){
+// return next (new ErrorHandler("You are not eligible to access this course",404))
+// }
+ const rawCourses = req.user?.courses || [];
+
+    // Normalize to array of string IDs
+    const userCourses = rawCourses
+      .filter((c: any) => c) // remove null
+      .map((c: any) => (typeof c === "string" ? c : c._id?.toString()));
+
+    const courseId = req.params.id;
+
+    // Validate access
+    const hasAccess = userCourses.includes(courseId);
+
+    if (!hasAccess) {
+      return next(
+        new ErrorHandler("You are not eligible to access this course", 403)
+      );
+    }
 const course = await CourseModel.findById(courseId);
 
 const content = course?.courseData
@@ -212,13 +228,14 @@ res.status(200).json({
             
         }
         courseContent.questions.push(newQuestion)
-            await NotificationModel.create({
+            
+        
+        await course?.save();
+        await NotificationModel.create({
       user: req.user?._id,
       title: "New Question",
       message: `You have a new question in ${courseContent?.title}`
     });
-        
-        await course?.save();
         res.status(200).json({
     success:true,
     course
@@ -317,7 +334,10 @@ export const addReview = CatchAsyncError(async (req: Request, res: Response, nex
 const userCourse = req.user?.courses;
 const courseId = req.params.id;
 
-const courseExist = userCourse?.some((course:any)=>course._id.toString())
+// const courseExist = userCourse?.some((course:any)=>course._id.toString())
+const courseExist = userCourse?.some((course: any) => 
+            course && course._id.toString() === courseId 
+        );
 
 if(!courseExist){
      return next(new ErrorHandler("You are not eligible to access this resource", 404));
@@ -341,11 +361,13 @@ if(course){
     course.ratings = avg/course.reviews.length
 }
 await course?.save();
+await redis.set(courseId,JSON.stringify(course),{ EX: 604800 })
+  await NotificationModel.create({
+      user: req.user?._id,
+      title: "New Review Received",
+      message: `${req.user?.name} has given a review in ${course?.name}`
+    });
 
-const notification = {
-    title:"The Review Received",
-    messaage:`${req.user?.name} has given a review in ${course?.name}`
-}
  res.status(200).json({
     success:true,
     course
@@ -384,6 +406,7 @@ const review = course?.reviews?.find((rev: any) => rev._id.toString() === review
     }
     review.commentReply?.push(replyData)
         await course?.save()
+        await redis.set(courseId,JSON.stringify(course),{ EX: 604800 })
      res.status(200).json({
     success:true,
     course

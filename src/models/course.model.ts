@@ -78,7 +78,7 @@ const replySchema = new Schema(
     },
      helpful: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
-  { timestamps: true } // also gives createdAt & updatedAt
+  { timestamps: true } 
 );
 const reviewSchema = new Schema<Review>({
 user:Object,
@@ -92,10 +92,15 @@ commentReply: {
         {
           user: Object,
           comment: String,
+           createdAt: {
+        type: Date,
+        default: Date.now,
+      },
         },
       ],
       default: [],
     },
+    
   },
   { timestamps: true }
 )
@@ -140,7 +145,7 @@ const courseSchema = new Schema<Course>({
     },
     category:{
       type:String,
-      required:true
+      // required:true
     },
     price:{
         type:Number,

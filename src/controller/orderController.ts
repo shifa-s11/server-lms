@@ -341,10 +341,7 @@ export const verifyRazorPayment = CatchAsyncError(
       localOrderId,
     } = req.body;
 
-    console.log("Razorpay verify body:", req.body);
-
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-      console.error("Missing payment fields in verify body");
       return next(new ErrorHandler("Invalid payment data", 400));
     }
 
@@ -354,7 +351,6 @@ export const verifyRazorPayment = CatchAsyncError(
       .update(payload)
       .digest("hex");
 
-    console.log({ expectedSignature, razorpay_signature });
 
     if (expectedSignature !== razorpay_signature) {
       if (localOrderId) {
