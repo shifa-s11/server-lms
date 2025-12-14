@@ -15,10 +15,14 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: "http://localhost:3000", 
-    credentials: true,               
+    origin: [
+      "http://localhost:3000",
+      "https://lms-client-three-omega.vercel.app",
+    ],
+    credentials: true,
   })
 );
+
 
 app.use('/api/v1',userRouter)
 app.use('/api/v1',courseRouter)
