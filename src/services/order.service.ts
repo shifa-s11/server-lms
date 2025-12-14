@@ -1,11 +1,11 @@
-import { Order } from './../models/ordermodel';
+
 import OrderModel from "../models/ordermodel";
 import UserModel from "../models/user.model";
 import CourseModel from "../models/course.model";
 import NotificationModel from "../models/notificationmodel";
 import sendMail from "../utils/sendMail";
 import { redis } from "../config/redis";
-
+import mongoose from "mongoose";
 interface PaymentInfo {
   razorpay_order_id: string;
   razorpay_payment_id: string;
@@ -27,6 +27,7 @@ export const processSuccessfulOrder = async (
 ) => {
   const user = await UserModel.findById(userId);
   const course = await CourseModel.findById(courseId);
+   const courseObjectId = new mongoose.Types.ObjectId(courseId);
 
   if (!user || !course) throw new Error("User or Course not found");
 
@@ -36,7 +37,7 @@ export const processSuccessfulOrder = async (
   );
 
   if (!alreadyPurchased) {
-    user.courses.push(courseId);
+    user.courses.push({courseId});
     await user.save();
 
     await CourseModel.findByIdAndUpdate(courseId, {
@@ -69,10 +70,13 @@ let order
 
 
 
+
   // Prepare email data
   const mailData = {
     order: {
-      _id: course._id.toString().slice(0, 6),
+          _id: (course._id as mongoose.Types.ObjectId)
+        .toString()
+        .slice(0, 6),  
       name: course.name,
       price: course.price,
       date: new Date().toLocaleDateString("en-US", {

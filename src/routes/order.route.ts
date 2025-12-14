@@ -1,6 +1,6 @@
 import express from "express";
 import { isAuth, authorizedRoles } from "../middleware/auth";
-import { createOrder, getAllOrders } from "../controller/orderController";
+import {  getAllOrders } from "../controller/orderController";
 import { getOrderAnalytics } from "../controller/analytics.controller";
 import { updateAccessToken } from "../controller/user.controller";
 import { createRazorOrder } from "../controller/orderController";

@@ -258,6 +258,7 @@ export const updateAccessToken = CatchAsyncError(
 export const getUserInfo = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?._id?.toString();
+    if (!userId) return;
     await getUserId(userId, res)
   } catch (error: any) {
     return next(new ErrorHandler(error.message, 500))

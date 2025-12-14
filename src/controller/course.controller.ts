@@ -57,9 +57,11 @@ export const editCourse = CatchAsyncError(async (req: Request, res: Response, ne
     // If a new thumbnail is provided AND it's a base64 image
     if (data.thumbnail && data.thumbnail.startsWith("data:image")) {
       // Delete old thumbnail if exists
-      if (course.thumbnail?.public_id) {
-        await cloudinary.v2.uploader.destroy(course.thumbnail.public_id);
-      }
+const thumbnail = course.thumbnail as { public_id?: string };
+
+if (thumbnail?.public_id) {
+  await cloudinary.v2.uploader.destroy(thumbnail.public_id);
+}
 
       // Upload new image
       const upload = await cloudinary.v2.uploader.upload(data.thumbnail, {
@@ -501,8 +503,9 @@ export const markQuestionHelpful = CatchAsyncError(async (req: Request, res: Res
     if (question.helpful.some((id: any) => id.toString() === req.user?._id.toString())) {
       return next(new ErrorHandler("You already marked this question helpful", 400));
     }
+if (!req.user?._id) return;
 
-    question.helpful.push(req.user?._id);
+    question.helpful.push(new mongoose.Types.ObjectId(req.user._id));
     await course.save();
 
     res.status(200).json({
@@ -566,8 +569,9 @@ export const markAnswerHelpful = CatchAsyncError(async (req: Request, res: Respo
     if (answer.helpful.some((id: any) => id.toString() === req.user?._id.toString())) {
       return next(new ErrorHandler("You already marked this answer helpful", 400));
     }
+if (!req.user?._id) return;
 
-    answer.helpful.push(req.user?._id);
+    answer.helpful.push(new mongoose.Types.ObjectId(req.user._id));
     await course.save();
 
     res.status(200).json({
