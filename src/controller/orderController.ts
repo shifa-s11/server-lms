@@ -390,8 +390,6 @@ export const createRazorOrder = CatchAsyncError(
 
 export const verifyRazorPayment = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
-    console.log("🔵 VERIFY PAYMENT API HIT");
-    console.log("📦 Request Body:", req.body);
 
     const {
       razorpay_order_id,
@@ -402,7 +400,6 @@ export const verifyRazorPayment = CatchAsyncError(
 
     // 1️⃣ Validate payload
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-      console.error("❌ Missing Razorpay fields");
       return next(new ErrorHandler("Invalid payment data", 400));
     }
 
@@ -413,8 +410,6 @@ export const verifyRazorPayment = CatchAsyncError(
       .update(payload)
       .digest("hex");
 
-    console.log("🧾 Expected Signature:", expectedSignature);
-    console.log("🧾 Razorpay Signature:", razorpay_signature);
 
     if (expectedSignature !== razorpay_signature) {
       console.error("❌ Signature mismatch");
@@ -445,7 +440,6 @@ export const verifyRazorPayment = CatchAsyncError(
       courseId: localOrder.courseId,
     });
 
-    // 4️⃣ Prevent double processing (VERY IMPORTANT)
     if (localOrder.status === "paid") {
       console.warn("⚠️ Order already marked as PAID:", localOrderId);
       return res.status(200).json({
@@ -467,7 +461,6 @@ export const verifyRazorPayment = CatchAsyncError(
         }
       );
 
-      console.log("✅ Order finalized successfully");
 
       // 5️⃣ Mark order as paid (AFTER service success)
       await OrderModel.findByIdAndUpdate(localOrderId, {
@@ -475,7 +468,6 @@ export const verifyRazorPayment = CatchAsyncError(
         razorpayPaymentId: razorpay_payment_id,
       });
 
-      console.log("💾 Order marked as PAID in DB");
 
       res.status(200).json({
         success: true,

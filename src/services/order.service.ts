@@ -27,7 +27,7 @@ export const processSuccessfulOrder = async (
 ) => {
   const user = await UserModel.findById(userId);
   const course = await CourseModel.findById(courseId);
-   const courseObjectId = new mongoose.Types.ObjectId(courseId);
+  //  const courseObjectId = new mongoose.Types.ObjectId(courseId);
 
   if (!user || !course) throw new Error("User or Course not found");
 
@@ -37,7 +37,7 @@ export const processSuccessfulOrder = async (
   );
 
   if (!alreadyPurchased) {
-    user.courses.push({courseId});
+    user.courses.push(courseId);
     await user.save();
 
     await CourseModel.findByIdAndUpdate(courseId, {

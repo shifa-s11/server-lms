@@ -17,7 +17,7 @@ export interface User extends Document{
     role:string,
     wishlist:(Types.ObjectId | Course)[],
     isVerified:boolean,
-    courses:Array<{courseId:string}>,
+   courses: string[],
     comparePassword:(password:string) => Promise<boolean>;
     signAccessToken:() => string,
     signRefreshToken:()=> string
