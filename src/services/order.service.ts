@@ -88,12 +88,18 @@ let order
   };
 
   // Send email
-  // await sendMail({
-  //   email: user.email,
-  //   subject: "Order Confirmation",
-  //   template: "successfulOrder-mail.ejs",
-  //   data: mailData,
-  // });
+  try{
+  await sendMail({
+    email: user.email,
+    subject: "Order Confirmation",
+    template: "successfulOrder-mail.ejs",
+    data: mailData,
+  });
+  }catch (err) {
+  console.error("❌ Error while sending email:", err);
+  throw err; 
+}
+
 
   // Create notification
   await NotificationModel.create({
