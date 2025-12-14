@@ -22,8 +22,7 @@ app.use(
     credentials: true,
   })
 );
-
-
+app.set("trust proxy", 1);
 app.use('/api/v1',userRouter)
 app.use('/api/v1',courseRouter)
 app.use('/api/v1',orderRouter)

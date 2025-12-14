@@ -20,14 +20,16 @@ export const accessTokenOpt: Token = {
     expires: new Date(Date.now() + accessTokenExpire * 60 * 1000),
     maxAge: accessTokenExpire * 60 * 1000,
     httpOnly: true,
-    sameSite: 'lax',
+     secure: true,  
+     sameSite: "none" as const,
     path: "/",
 }
 export const RefreshTokenOpt: Token = {
     expires: new Date(Date.now() + refreshTokenExpire * 60 * 60 * 24 * 1000),
     maxAge: refreshTokenExpire * 60 * 60 * 24 * 1000,
     httpOnly: true,
-    sameSite: 'lax',
+     secure: true,
+    sameSite: "none" as const,
     path: "/",
 }
 export const sendToken = (user: User, statusCode: number, res: Response) => {
