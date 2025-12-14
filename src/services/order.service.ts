@@ -97,7 +97,6 @@ let order
   });
   }catch (err) {
   console.error("❌ Error while sending email:", err);
-  throw err; 
 }
 
 
