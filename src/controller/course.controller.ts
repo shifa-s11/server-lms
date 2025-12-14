@@ -233,6 +233,7 @@ res.status(200).json({
             
         
         await course?.save();
+                await redis.set(courseId,JSON.stringify(course), { EX: 604800 })
         await NotificationModel.create({
       user: req.user?._id,
       title: "New Question",
@@ -286,7 +287,7 @@ const newAnswer: any = {
 question.questionReplies.push(newAnswer)
 
 await course?.save();
-
+                await redis.set(courseId,JSON.stringify(course), { EX: 604800 })
 if(req.user?._id === question.user._id){
                 await NotificationModel.create({
       user: req.user?._id,
