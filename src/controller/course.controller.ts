@@ -650,3 +650,28 @@ getAllCourseService(res);
     }
   }
 );
+
+export const getEnrolledCourses = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const courseIds = req.user?.courses || [];
+
+    // If no enrolled courses
+    if (!courseIds.length) {
+      return res.status(200).json({
+        success: true,
+        courses: [],
+      });
+    }
+
+    const courses = await CourseModel.find({
+      _id: { $in: courseIds },
+    }).select(
+      "name thumbnail price ratings purchased createdAt"
+    );
+
+    res.status(200).json({
+      success: true,
+      courses,
+    });
+  }
+);
