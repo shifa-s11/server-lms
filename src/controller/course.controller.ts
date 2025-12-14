@@ -666,7 +666,7 @@ export const getEnrolledCourses = CatchAsyncError(
     const courses = await CourseModel.find({
       _id: { $in: courseIds },
     }).select(
-      "name thumbnail price ratings purchased createdAt"
+      "_id name thumbnail ratings reviews purchased price estimatedPrice courseData"
     );
 
     res.status(200).json({
