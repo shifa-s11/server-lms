@@ -4,7 +4,7 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-   "build": "tsc && cp -r src/mail dist/mail",
+    "build": "tsc && cp -r src/mail dist/mail",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "start": "node dist/server.js"
   },
@@ -29,6 +29,7 @@
     "raw-body": "^3.0.2",
     "razorpay": "^2.9.6",
     "redis": "^5.8.2",
+    "resend": "^6.6.0",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "zod": "^4.1.5"

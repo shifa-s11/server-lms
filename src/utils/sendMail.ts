@@ -1,7 +1,8 @@
-
-import nodemailer, { Transporter } from "nodemailer";
+import { Resend } from "resend";
 import ejs from "ejs";
 import path from "path";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 interface EmailOptions {
   email: string;
@@ -12,29 +13,19 @@ interface EmailOptions {
 
 const sendMail = async (options: EmailOptions): Promise<void> => {
   try {
-    const transporter: Transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 587,
-      service: process.env.SMTP_SERVICE,
-      auth: {
-        user: process.env.SMTP_MAIL,
-        pass: process.env.SMTP_PASSWORD,
-      },
-    });
-
     const templatePath = path.join(__dirname, "../mail", options.template);
-    const html: string = await ejs.renderFile(templatePath, options.data);
+    const html = await ejs.renderFile(templatePath, options.data);
 
-    await transporter.sendMail({
-      from: process.env.SMTP_MAIL,
+    await resend.emails.send({
+      from: "noreply@shifaas.xyz",
       to: options.email,
       subject: options.subject,
       html,
     });
 
-    console.log(` Email sent to ${options.email}`);
+    console.log(`Email sent to ${options.email}`);
   } catch (error: any) {
-    console.error(" Error while sending email:", error.message);
+    console.error("Error while sending email:", error.message);
     throw new Error(error.message);
   }
 };
