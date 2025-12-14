@@ -88,12 +88,12 @@ let order
   };
 
   // Send email
-  await sendMail({
-    email: user.email,
-    subject: "Order Confirmation",
-    template: "successfulOrder-mail.ejs",
-    data: mailData,
-  });
+  // await sendMail({
+  //   email: user.email,
+  //   subject: "Order Confirmation",
+  //   template: "successfulOrder-mail.ejs",
+  //   data: mailData,
+  // });
 
   // Create notification
   await NotificationModel.create({
