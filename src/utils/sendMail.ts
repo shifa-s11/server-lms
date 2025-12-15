@@ -1,8 +1,7 @@
-import { Resend } from "resend";
+
+import sgMail from "@sendgrid/mail";
 import ejs from "ejs";
 import path from "path";
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 interface EmailOptions {
   email: string;
@@ -11,21 +10,24 @@ interface EmailOptions {
   data: { [key: string]: any };
 }
 
+sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
+
 const sendMail = async (options: EmailOptions): Promise<void> => {
   try {
     const templatePath = path.join(__dirname, "../mail", options.template);
-    const html = await ejs.renderFile(templatePath, options.data);
 
-    await resend.emails.send({
-      from: "noreply@shifaas.xyz",
+    const html: string = await ejs.renderFile(templatePath, options.data);
+
+    await sgMail.send({
       to: options.email,
+      from: process.env.SENDGRID_FROM_EMAIL!, // verified sender
       subject: options.subject,
       html,
     });
 
-    console.log(`Email sent to ${options.email}`);
+    console.log(`✅ Email sent to ${options.email}`);
   } catch (error: any) {
-    console.error("Error while sending email:", error.message);
+    console.error("❌ Error sending email:", error.message);
     throw new Error(error.message);
   }
 };
