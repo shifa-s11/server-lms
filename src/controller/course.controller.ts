@@ -11,6 +11,7 @@ import path from "path";
 import sendMail from '../utils/sendMail';
 import UserModel from '../models/user.model';
 import NotificationModel from '../models/notificationmodel';
+import { emitAdminNotification, emitUserNotification } from '../socketServer';
 
 // course upload 
 export const uploadCourse = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
@@ -234,11 +235,16 @@ res.status(200).json({
         
         await course?.save();
                 await redis.set(courseId,JSON.stringify(course), { EX: 604800 })
-        await NotificationModel.create({
-      user: req.user?._id,
-      title: "New Question",
-      message: `You have a new question in ${courseContent?.title}`
-    });
+        try {
+          const notification = await NotificationModel.create({
+            user: req.user?._id,
+            title: "New Question",
+            message: `You have a new question in ${courseContent?.title}`
+          });
+          emitAdminNotification(notification);
+        } catch (notificationError) {
+          console.error("Question notification failed:", notificationError);
+        }
         res.status(200).json({
     success:true,
     course
@@ -289,11 +295,16 @@ question.questionReplies.push(newAnswer)
 await course?.save();
                 await redis.set(courseId,JSON.stringify(course), { EX: 604800 })
 if(req.user?._id === question.user._id){
-                await NotificationModel.create({
-      user: req.user?._id,
-      title: "New Question Reply Received",
-      message: `You have a new question reply in  ${courseContent?.title}`
-    });
+                try {
+                  const notification = await NotificationModel.create({
+                    user: req.user?._id,
+                    title: "New Question Reply Received",
+                    message: `You have a new question reply in  ${courseContent?.title}`
+                  });
+                  emitUserNotification(String(question.user?._id || req.user?._id), notification);
+                } catch (notificationError) {
+                  console.error("Question reply notification failed:", notificationError);
+                }
 }else{
     const data = {
         name:question.user.name,
@@ -365,11 +376,16 @@ if(course){
 }
 await course?.save();
 await redis.set(courseId,JSON.stringify(course),{ EX: 604800 })
-  await NotificationModel.create({
+  try {
+    const notification = await NotificationModel.create({
       user: req.user?._id,
       title: "New Review Received",
       message: `${req.user?.name} has given a review in ${course?.name}`
     });
+    emitAdminNotification(notification);
+  } catch (notificationError) {
+    console.error("Review notification failed:", notificationError);
+  }
 
  res.status(200).json({
     success:true,

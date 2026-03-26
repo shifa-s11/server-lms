@@ -6,6 +6,7 @@ import NotificationModel from "../models/notificationmodel";
 import sendMail from "../utils/sendMail";
 import { redis } from "../config/redis";
 import mongoose from "mongoose";
+import { emitAdminNotification } from "../socketServer";
 interface PaymentInfo {
   razorpay_order_id: string;
   razorpay_payment_id: string;
@@ -101,11 +102,16 @@ let order
 
 
   // Create notification
-  await NotificationModel.create({
-    user: userId,
-    title: "New Order",
-    message: `You have a new order for ${course.name}`,
-  });
+  try {
+    const notification = await NotificationModel.create({
+      user: userId,
+      title: "New Order",
+      message: `You have a new order for ${course.name}`,
+    });
+    emitAdminNotification(notification);
+  } catch (notificationError) {
+    console.error("Order notification failed:", notificationError);
+  }
 
   // Update Redis cache
   const updatedUser = await UserModel.findById(userId);
